@@ -1,1 +1,4 @@
-# new context
+---
+layout: default
+---
+# Content
