@@ -1,7 +1,3 @@
-layout: page
-title: "Work Sample"
-permalink: /work-sample/
-
 <!DOCTYPE html>
 
 <html>
