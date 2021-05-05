@@ -31,6 +31,6 @@ _The Github page for a package I worked on to make data analysis more accessible
 
 ## [Field Museum: Calumet Voices/National Stories](https://calumetvoicesexhibit.com/)
 
-_Online exhibition for the Field Museum called "Calumet Voices/National Stories" that I helped research, design, and formatted into Wordpress_ 
+_Online exhibition for the Field Museum called Calumet Voices/National Stories that I helped research, design, and formatted into Wordpress_ 
 
 I'm excited to move into the professional world, where I hope to continue growing my statistical skillset by engaging with communities across Chicago, the country, and the world. If you're interested in learning more about any of my projects, experiences, or just want to chat, feel free to email me anytime at [clydeschwab@gmail.com](mailto:clydeschwab@gmail.com). 
