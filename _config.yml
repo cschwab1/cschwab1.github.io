@@ -1,11 +1,5 @@
 theme: jekyll-theme-minimal
 title: Clyde's Portfolio
-description: Research|Housing|Criminal Justice|Health|Spatial|R
-twitter:
-  id: 'clydeschwab1'
-  href: 'https://www.twitter.com/'
-  title: 'Twitter'
-  fa-icon: 'fa-twitter-square'
 plugins:
   - jekyll-relative-links
 relative_links:
