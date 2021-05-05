@@ -1,6 +1,3 @@
----
-layout: default
----
 # Clyde Schwab's Portfolio
 #### **Research|Housing|Criminal Justice|Health|Spatial|R**
 
