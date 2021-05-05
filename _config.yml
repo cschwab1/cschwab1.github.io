@@ -1,4 +1,6 @@
 theme: jekyll-theme-minimal
+title: Clyde's Portfolio
+description: Research|Housing|Criminal Justice|Health|Spatial|R
 plugins:
   - jekyll-relative-links
 relative_links:
