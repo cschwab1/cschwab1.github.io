@@ -19,7 +19,7 @@ _Expanded description of my BA Thesis Project on gentrification in Berlin_
 
 ## [Urban Labs Work](https://cschwab1.github.io/urban_labs.html)
 
-_Visualizations and analysis from projects I worked on at Urban Labs Crime and Education Lab_
+_Visualizations and analysis from projects I worked on at the Urban Labs Crime and Education Labs_
 
 ## [South Side Housing Data Initative](https://cschwab1.github.io/SSHDI.html)
 
@@ -31,6 +31,6 @@ _The Github page for a package I worked on to make data analysis more accessible
 
 ## [Field Museum: Calumet Voices/National Stories](https://calumetvoicesexhibit.com/)
 
-_Online exhibition for the Field Museum called _Calumet Voices/National Stories_ that I helped research, design, and formatted into Wordpress_ 
+_Online exhibition for the Field Museum called "Calumet Voices/National Stories" that I helped research, design, and formatted into Wordpress_ 
 
 I'm excited to move into the professional world, where I hope to continue growing my statistical skillset by engaging with communities across Chicago, the country, and the world. If you're interested in learning more about any of my projects, experiences, or just want to chat, feel free to email me anytime at [clydeschwab@gmail.com](mailto:clydeschwab@gmail.com). 
