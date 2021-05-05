@@ -6,7 +6,7 @@ layout: default
 
 _note: I'm still working on assembling this site, so watch out for changes in the coming weeks and months!_
 
-I'm a graduating geography major at the University of Chicago. Broadly, I'm interested in learning about how data can be used to affect real change for real people and help create a more just and equitable society. Specifically, I have focused on developing strong skills in spatial analysis with R, including data wrangling, visualization, regression analysis, and causal inference, while emphasizing the significance of context and place in understanding the complex social dynamics which continue to shape our cities. 
+I'm a graduating fourth year geography major at the University of Chicago. I'm interested in learning about how data can be used to affect real change for real people and help create a more just and equitable society. I've focused on developing strong skills in spatial analysis with R, including data wrangling, visualization, regression analysis, and causal inference, while emphasizing the significance of context and place in understanding the complex social dynamics which continue to shape our cities, communities, and individuals. 
 
 You can learn more about my personal and professional experiences here on this page, including my work as a research analyst at the [South Side Housing Data Initative](https://historicsouthsidecommunitysurvey.com/), [UChicago Urban Labs](https://urbanlabs.uchicago.edu/), the [Keller Science Action Center](https://www.fieldmuseum.org/science/conservation/keller-science-action-center), and for my BA thesis project. 
 
