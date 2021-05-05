@@ -2,7 +2,9 @@
 layout: default
 ---
 # Clyde Schwab's Portfolio
-#### _Research|Housing|Criminal Justice|Health|Spatial|R_
+#### **Research|Housing|Criminal Justice|Health|Spatial|R**
+
+_note: I'm still working on assembling this site, so watch out for changes in the coming weeks and months!_
 
 I'm a graduating geography major at the University of Chicago. Broadly, I'm interested in learning about how data can be used to affect real change for real people and help create a more just and equitable society. Specifically, I have focused on developing strong skills in spatial analysis with R, including data wrangling, visualization, regression analysis, and causal inference, while emphasizing the significance of context and place in understanding the complex social dynamics which continue to shape our cities. 
 
@@ -10,14 +12,28 @@ You can learn more about my personal and professional experiences here on this p
 
 Below you can find a few projects I've worked on:
 
-## [Work Sample](https://cschwab1.github.io/work_sample.html)
+## [Code Sample](https://cschwab1.github.io/work_sample.html)
+
+A fast and easy demonstration of my spatial data skillset, drawn from a number of different data wrangling and analysis tasks I completed for my BA thesis
 
 ## [BA Thesis Project](https://cschwab1.github.io/Berlin-Gentrification-Project.github.io/)
 
+A more expanded description of my BA Thesis Project on gentrification in Berlin
+
 ## [Urban Labs Work](https://cschwab1.github.io/urban_labs.html)
+
+Visualizations and analysis from projects I worked on at Urban Labs Crime and Education Lab
 
 ## [South Side Housing Data Initative](https://cschwab1.github.io/SSHDI.html)
 
+Visualizations and analysis for the South Side Housing Data Initative
+
 ## [Chicago Data Package](https://github.com/cschwab1/chicagodatapackage)
+
+The Github page for a package I worked on to make data analysis more accessible to interested Chicagoans, particularly journalists 
+
+## [Field Museum: Calumet Voices/National Stories](https://calumetvoicesexhibit.com/)
+
+Online exhibition for the Field Museum called _Calumet Voices/National Stories_ that I helped research, design, and format into Wordpress. 
 
 I'm excited to move into the professional world, where I hope to continue growing my statistical skillset by engaging with communities across Chicago, the country, and the world. If you're interested in learning more about any of my projects, experiences, or just want to chat, feel free to email me anytime at [clydeschwab@gmail.com](mailto:clydeschwab@gmail.com). 
