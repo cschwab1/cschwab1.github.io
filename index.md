@@ -1,8 +1,8 @@
 ---
 layout: default
 ---
-#### _Cities, Spaces, Power_
 # Clyde Schwab's Portfolio
+#### _Cities, Spaces, Power_
 
 I'm a graduating geography major at the University of Chicago. Broadly, I'm interested in learning about how data can be used to affect real change for real people and help create a more just and equitable society. Specifically, I have focused on developing strong skills in spatial analysis with R, including data wrangling, visualization, regression analysis, and causal inference, while emphasizing the significance of context and place in understanding the complex social dynamics which continue to shape our cities. 
 
