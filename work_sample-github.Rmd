@@ -37,9 +37,14 @@ The first section focuses on cleaning data and generating data I use for my thes
 
 In the second section, I provide a very brief sample of statistical analysis I've done for my thesis. 
 
-If you have any questions feel free to reach out via [email](cschwab1@uchicago.edu), and I look forward to hearing from you! s
+If you have any questions feel free to reach out via [email](cschwab1@uchicago.edu), and I look forward to hearing from you! 
 
 ## 1: Data Loading and Cleaning
+
+This section details how I downloaded and cleaned data from several sources to use in my typology of gentrification. 
+
+<details>
+  <summary>Section 1: Click to expand! </summary>
 
 To create my gentrification typology, I used data from the resident register (Einwohnerregister), a survey called Monitoring Social Urban Development (MSS, Monitoring Sozialestadtentwicklung), and data on the average sale price on residential units. This data was largely aggregated to the [LOR Planning Region area](https://www.stadtentwicklung.berlin.de/planen/basisdaten_stadtentwicklung/lor/), but some years needed to be arealy interpolated. For this example, I'll show how I processed and combined data with a single year as an example (for combination I use two years, as I'm basing my typology off change over each two year period). 
 
@@ -294,8 +299,15 @@ eg_lor_full <- egdummy(eg_lor_full, "2018-12-31") %>% rename(iseg19 = y)
 # the process is repeated for areas within 500 meters. 
 ```
 
+</details>
+
 ## 2: Gentrification data generation
 
+In section 2, I give a sample of how I classified areas in different stages of gentrification according to a set of demographic characteristics. 
+
+<details>
+  <summary>Section 2: Click to expand!</summary>
+  
 ### 2.1 Data combining 
 Before data is generated, all three clean datasources have been saved as `.Rdata` files and are loaded and subsequently combined in each year. Then, years subtracted to find the change in each variable between each year. Once again, only a sample of this process is shown. 
 
@@ -648,55 +660,29 @@ urb_anim
 There's a ton of possibilities for cool visualizations, and I'm working on creating a shiny app that can focus in on specific districts to create a facet map/animated gif, as well as illustrating the relationship between treatment and gentrification (including spillover). 
 
 But, without further ado, the next section shows a few methods I used for analysis. 
+</details>
 
 ## 3: Analysis
 
-### 3.1 Ordered Logit 
+In this section, I show what exploratory data analysis I completed using my new gentrification data. The focus of this EDA is the effect of community protection areas in Berlin. 
 
-I started by doing an ordinal logistic regression to estimate the effects of treatment on liklihood to be in any one stage of gentrification. This isn't necessarily going to tell us much, given that areas experiencing gentrification are probably going to be more likely to be selected anyway. The basic output is shown below: 
+### 3.1 Spatial Autocorrelation
+
+For the first step of exploratory data analysis, I perform a survival analysis using the `survival` package in R. 
 
 ```{r}
-load("~/Desktop/Code/Thesis/Data_for_Analysis/datacomb.Rdata")
-load("~/Desktop/Code/Thesis/Data_for_Analysis/gtable.Rdata")
-load("~/Desktop/Code/Thesis/Data_for_Analysis/blong.Rdata")
 
-dfL_full$gstatus <- as.factor(dfL_full$gstatus)
-dfL_full <- dfL_full %>% filter(F_IN_KRAFT.x < 2020)
-
-m_simple <- MASS::polr(gstatus ~ treattime, data = dfL_full, Hess=TRUE)
-summary(m_simple)
-brant(m_simple)
-(ctables <- coef(summary(m_simple)))
-p <- pnorm(abs(ctables[, "t value"]), lower.tail = FALSE) * 2
-ctables <- cbind(ctables, "p value" = p)
-as.data.frame(ctables)
-(ci <- confint(m_simple))
-confint.default(m_simple)
-exp(coef(m_simple))
-exp(cbind(OR = coef(m_simple), ci))
 ```
 
 While the regression coefficients show that there isn't a substantial effect of being in any one stage and being treated, some more interesting results are given when we look at areas that aren't themselves treated, but are within 500 meters of a treated area
 
 ```{r}
-df2 <- dfL_full %>% filter(dfL_full$is_eg != 1)
-m_500 <- polr(gstatus ~ treattime500, data = df2, Hess=TRUE)
-equatiomatic::extract_eq(m_500)
-summary(m_500)
-brant(m_500)
-(ctables <- coef(summary(m_500)))
-p <- pnorm(abs(ctables[, "t value"]), lower.tail = FALSE) * 2
-ctables <- cbind(ctables, "p value" = p)
-as.data.frame(ctables)
-(ci <- confint(m_500))
-confint.default(m_500)
-exp(coef(m_500))
-exp(cbind(OR = coef(m_500), ci))
+
 ``` 
 
 The coefficient $\beta$ of treatment time is 0.15 with a significance level of < 0.01 and a confidence interval of (0.124, 0.187), indicating that proximity to a protected area has a stronger association between increased gentrification than being not proximate to a protected area, or even being a protected area. 
 
-However, before we can conclude that these results are at all meaningful, we can test for spatial dependence using a Global Moran's L: 
+However, before we can conclude that these results are at all meaningful, we can test for spatial dependence using a Global Moran's I: 
 
 ```{r warning=FALSE}
 bw <- poly2nb(b_sf, queen=T)
@@ -715,8 +701,6 @@ invd.weights <- nb2listw(nb.dist.band,glist = invd1a,style = "B")
 b_sf$gcode[is.na(b_sf$gcode)] <- 0
 moran.mc(b_sf$gcode, invd.weights, nsim=200)
 ```
-
-The presence of spatial autocorrelation means that the assumption of units being unaffected by nearby units in their outcome doesn't much hold here. I try to address this later using spatial weights, but methodologies for this are still developing, and this kind of work is largely beyond the scope of my project. 
 
 ### 3.2 Difference-in-difference
 
