@@ -300,8 +300,7 @@ eg_lor_full <- egdummy(eg_lor_full, "2018-12-31") %>% rename(iseg19 = y)
 ## 2: Gentrification data generation
 
 In section 2, I give a sample of how I classified areas in different stages of gentrification according to a set of demographic characteristics. 
-
-  
+    
 ### 2.1 Data combining 
 Before data is generated, all three clean datasources have been saved as `.Rdata` files and are loaded and subsequently combined in each year. Then, years subtracted to find the change in each variable between each year. Once again, only a sample of this process is shown. 
 
@@ -664,8 +663,179 @@ In this section, I show what exploratory data analysis I completed using my new 
 For the first step of exploratory data analysis, I perform a survival analysis using the `survival` package in R. 
 
 ```{r}
+library(tigris)
+library(tmap)
+library(sp)
+library(spdep)
+library(rmapshaper)
+library(rgdal)
+library(broom)
+load("~/Desktop/Code/Thesis/Data_for_Analysis/bfinal.Rdata")
+load("~/Desktop/Code/Thesis/Data_for_Analysis/gtable.Rdata")
+load("~/Desktop/Code/Thesis/Data_for_Analysis/blong.Rdata")
+load("~/Desktop/Code/Thesis/Data_for_Analysis/lor.Rdata")
 
+lor <- lor %>% dplyr::rename(RAUMID = gml_id)
+lor$RAUMID <- as.numeric(lor$RAUMID) 
+
+# joining objects to shapefile
+b_sf <- left_join(bfinal, lor, by=c("RAUMID")) %>% st_as_sf()
+b_sf$gcode[is.na(b_sf$gcode)] <- 0
+bwhole <- st_cast(lor, to="POLYGON")
+
+bL_sf <- left_join(dfL_full, lor, by=c("RAUMID")) %>% st_as_sf()
+bL_sf$gstatus <- as.factor(bL_sf$gstatus)
 ```
+
+```{r}
+bw <- poly2nb(b_sf, row.names=b_sf$RAUMID, queen=T)
+xy <- coordinates(b_sf %>% as_Spatial())
+ww <- nb2listw(bw, style="W", zero.policy = TRUE)
+
+plot(b_sf$geometry, col="gray", border="red") + plot(bw, xy, col="blue", lwd=.5, add=TRUE)
+```
+
+Plotting contiguous points on scatter
+```{r}
+n <- length(b_sf)
+y <- b_sf$gcode
+ybar <- mean(y)
+wm <- nb2mat(bw, style='B')
+ms <- cbind(id=rep(1:n, each=n), y=rep(y, each=n), value=as.vector(wm * y))
+ms <- ms[ms[,3] > 0, ]
+
+ams <- aggregate(ms[,2:3], list(ms[,1]), FUN=mean)
+ams <- ams[,-1]
+colnames(ams) <- c('y', 'spatially lagged y')
+head(ams)
+
+plot(ams)
+reg <- lm(ams[,2] ~ ams[,1])
+abline(reg, lwd=2)
+abline(h=mean(ams[,2]), lt=2)
+abline(v=ybar, lt=2)
+```
+
+doing calculations
+```{r}
+bL_sf$gstatus <- as.numeric(as.character(bL_sf$gstatus))
+
+x <- split(bL_sf, bL_sf$Year)
+x01 <- x[[1]]
+x03 <- x[[2]]
+x05 <- x[[3]]
+x07 <- x[[4]]
+x09 <- x[[5]]
+x11 <- x[[6]]
+x13 <- x[[7]]
+x15 <- x[[8]]
+x17 <- x[[9]]
+x19 <- x[[10]]
+
+length <- 10
+morlist.nn <- vector(mode = "list", length = length)
+morlist.nn[[1]] <- moran.mc(x01$gstatus, ww, nsim=200)
+morlist.nn[[2]] <- moran.mc(x03$gstatus, ww, nsim=200)
+morlist.nn[[3]] <- moran.mc(x05$gstatus, ww, nsim=200)
+morlist.nn[[4]] <- moran.mc(x07$gstatus, ww, nsim=200)
+morlist.nn[[5]] <- moran.mc(x09$gstatus, ww, nsim=200)
+morlist.nn[[6]] <- moran.mc(x11$gstatus, ww, nsim=200)
+morlist.nn[[7]] <- moran.mc(x13$gstatus, ww, nsim=200)
+morlist.nn[[8]] <- moran.mc(x15$gstatus, ww, nsim=200)
+morlist.nn[[9]] <- moran.mc(x17$gstatus, ww, nsim=200)
+morlist.nn[[10]] <- moran.mc(x19$gstatus, ww, nsim=200)
+
+m01 <- tidy(morlist.nn[[1]])
+m03 <- tidy(morlist.nn[[2]])
+m05 <- tidy(morlist.nn[[3]])
+m07 <- tidy(morlist.nn[[4]])
+m09 <- tidy(morlist.nn[[5]])
+m11 <- tidy(morlist.nn[[6]])
+m13 <- tidy(morlist.nn[[7]]) 
+m15 <- tidy(morlist.nn[[8]])
+m17 <- tidy(morlist.nn[[9]])
+m19 <- tidy(morlist.nn[[10]])
+m.ave <- rbind(m01, m03, m05, m07, m09, m11, m13, m15, m17, m19)
+
+years <- seq(2001, 2019, 2)
+m.ave$year <- years
+avg_m.ave <- colMeans(m.ave[,1:2])
+m.ave <- rbind(m.ave, avg_m.ave)
+m.ave[11, 3:6] <- NA
+m.ave$year <- as.character(m.ave$year)
+m.ave[11, 6] <- "Average"
+m.ave <- m.ave %>% dplyr::select(c(6, 1, 2, 5))
+m.ave[,2:3] <- round(m.ave[,2:3], digits=4)
+m.ave
+```
+
+Inverse Distance weighted: Creating inverse distance weighted bands
+
+```{r}
+coo <- coordinates(as_Spatial(b_sf))
+k1 <- knn2nb(knearneigh(coo))
+critical.threshold <- max(unlist(nbdists(k1,coo)))
+nb.dist.band <- dnearneigh(coo, 0, critical.threshold)
+distances <- nbdists(nb.dist.band, coo)
+distances[1]
+invd1 <- lapply(distances, function(x) (1/x))
+invd1[1]
+invd1a <- lapply(distances, function(x) (1/(x/1000)))
+invd1a[1]
+invd.weights <- nb2listw(nb.dist.band,glist = invd1a,style = "B")
+
+plot(invd.weights, coo, lwd=.2, col="blue", cex = .5)
+```
+
+
+```{r}
+x01 <- x[[1]]
+x03 <- x[[2]]
+x05 <- x[[3]]
+x07 <- x[[4]]
+x09 <- x[[5]]
+x11 <- x[[6]]
+x13 <- x[[7]]
+x15 <- x[[8]]
+x17 <- x[[9]]
+x19 <- x[[10]]
+
+morlist <- vector(mode = "list", length = length)
+morlist[[1]] <- moran.mc(x01$gstatus, invd.weights, nsim=200)
+morlist[[2]] <- moran.mc(x03$gstatus, invd.weights, nsim=200)
+morlist[[3]] <- moran.mc(x05$gstatus, invd.weights, nsim=200)
+morlist[[4]] <- moran.mc(x07$gstatus, invd.weights, nsim=200)
+morlist[[5]] <- moran.mc(x09$gstatus, invd.weights, nsim=200)
+morlist[[6]] <- moran.mc(x11$gstatus, invd.weights, nsim=200)
+morlist[[7]] <- moran.mc(x13$gstatus, invd.weights, nsim=200)
+morlist[[8]] <- moran.mc(x15$gstatus, invd.weights, nsim=200)
+morlist[[9]] <- moran.mc(x17$gstatus, invd.weights, nsim=200)
+morlist[[10]] <- moran.mc(x19$gstatus, invd.weights, nsim=200)
+
+m01 <- tidy(morlist[[1]])
+m03 <- tidy(morlist[[2]])
+m05 <- tidy(morlist[[3]])
+m07 <- tidy(morlist[[4]])
+m09 <- tidy(morlist[[5]])
+m11 <- tidy(morlist[[6]])
+m13 <- tidy(morlist[[7]]) 
+m15 <- tidy(morlist[[8]])
+m17 <- tidy(morlist[[9]])
+m19 <- tidy(morlist[[10]])
+m.ave <- rbind(m01, m03, m05, m07, m09, m11, m13, m15, m17, m19)
+
+years <- seq(2001, 2019, 2)
+m.ave$year <- years
+avg_m.ave <- colMeans(m.ave[,1:2])
+m.ave <- rbind(m.ave, avg_m.ave)
+m.ave[11, 3:6] <- NA
+m.ave$year <- as.character(m.ave$year)
+m.ave[11, 6] <- "Average"
+m.ave <- m.ave %>% dplyr::select(c(6, 1, 2, 5))
+m.ave[,2:3] <- round(m.ave[,2:3], digits=4)
+m.ave
+```
+
 
 While the regression coefficients show that there isn't a substantial effect of being in any one stage and being treated, some more interesting results are given when we look at areas that aren't themselves treated, but are within 500 meters of a treated area
 
@@ -695,32 +865,296 @@ b_sf$gcode[is.na(b_sf$gcode)] <- 0
 moran.mc(b_sf$gcode, invd.weights, nsim=200)
 ```
 
-### 3.2 Difference-in-difference
+### 3.2 Survival Analysis
 
-It's a bit contradictory to try this method of causal inference having just explained by why classic inference techniques aren't as helpful here, I still want to demonstrate how the data I generated can, with a bit more wrangling, be used alongside powerful econometric techniques. Here, I consider status as a ratio, which, while not strictly-speaking correct, is a stable enough assumption to not try to use an ordinal difference-in-difference approach. Most of the heavy lifting is done by the `did` package, and some results are shown below: 
+Loading some additional packages used and the previously created data
+
+```{r}
+library(lubridate)
+library(survival)
+library(survminer)
+library(GGally)
+library(ggplot2)
+library(ggfortify)
+library(rlist)
+library(rms)
+library(broom)
+library(survtools)
+library(Epi)
+library(gridGraphics)
+library(grid)
+library(gridExtra)
+library(gtable)
+
+load("~/Desktop/Code/Thesis/Data_for_Analysis/bfinal.Rdata")
+load("~/Desktop/Code/Thesis/Data_for_Analysis/eg.rda")
+
+eg_lor_full$ID <- as.numeric(eg_lor_full$ID)
+data <- left_join(bfinal[c(1:7)], eg_lor_full[c(1, 3:4, 16, 18)], by=c("RAUMID" = "ID"))
+```
+
+Then, I convert the data to long format but with each row representing the period an area experienced a certain stage of gentrification. 
+```{r}
+start <- as.Date("2000-12-31")
+data$start_S1 <- time_length(difftime(data$gcode1yr, start), "years")
+data$start_S2 <- time_length(difftime(data$gcode2yr, start), "years")
+data$start_S3 <- time_length(difftime(data$gcode3yr, start), "years")
+data$start_S4 <- time_length(difftime(data$gcode4yr, start), "years")
+data$start_S5 <- time_length(difftime(data$gcode5yr, start), "years")
+data <- dplyr::select(data, c(1:7, 12:16, 8:11))
+
+stage1 <- data[c(1, 8:9)] %>% 
+  dplyr::rename(startTime = 2, endTime = 3) %>% 
+  filter(!is.na(startTime))
+stage1$event <- ifelse(!is.na(stage1$endTime), c("tg2"), c("cens"))
+
+stage2 <- data[c(1, 9:10)] %>% 
+  rename(startTime = 2, endTime = 3) %>% 
+  filter(!is.na(startTime))
+stage2$event <- ifelse(!is.na(stage2$endTime), c("tg3"), c("cens"))
+
+stage3 <- data[c(1, 10:11)] %>% 
+  rename(startTime = 2, endTime = 3) %>% 
+  filter(!is.na(startTime))
+stage3$event <- ifelse(!is.na(stage3$endTime), c("tg4"), c("cens"))
+
+stage4 <- data[c(1, 11:12)] %>% 
+  rename(startTime = 2, endTime = 3) %>% 
+  filter(!is.na(startTime))
+stage4$event <- ifelse(!is.na(stage4$endTime), c("tg5"), c("cens"))
+
+dataL <- rbind(stage1, stage2, stage3, stage4) %>% group_by(RAUMID)
+
+end <- as.Date("2020-01-01")
+dataL$endTime <- ifelse(
+  is.na(dataL$endTime), time_length(difftime(end, start), "years"), dataL$endTime
+)
+
+dataL$event <- as.factor(dataL$event)
+
+labels=c(0:4)
+dataL$event_num <- as.numeric(as.character(factor(dataL$event, labels=c(0:4))))
+```
+
+With the new longitudinal data, I also create dummy variables for whether an area is treated during each period or if it's within 500 meters of another treated area.  
+```{r}
+data$treatment_starttime <- time_length(difftime(data$F_IN_KRAFT.x, start), "years")
+
+dataL <- left_join(dataL, data[c(1, 17)], by=c("RAUMID")) %>% tibble::rowid_to_column(., "ID")
+
+dataL$treat <- ifelse(
+  dataL$startTime > dataL$treatment_starttime, 1, ifelse(
+    dataL$endTime > dataL$treatment_starttime, 1, 0
+  )
+)
+
+dataL[, 8][is.na(dataL[, 8])] <- 0
+
+data$treatment_starttime_500 <- time_length(difftime(data$F_IN_KRAFT.y, start), "years")
+
+dataL <- left_join(dataL, data[c(1, 18)], by=c("RAUMID"))
+dataL$treat500 <- ifelse(
+  dataL$startTime > dataL$treatment_starttime_500, 1, ifelse(
+    dataL$endTime > dataL$treatment_starttime_500, 1, 0
+  )
+)
+dataL[, 10][is.na(dataL[, 10])] <- 0
+```
+
+With all the data wrangling done, we can move on to fitting and visualizing some basic survival curves: 
+```{r}
+mfit1 <- survfit(Surv(startTime, endTime, event) ~treat, id=ID, data=dataL)
+print(mfit1)
+summary(mfit1)
+```
+
+This code creates a facet of the survival curve of each stage of gentrification: 
+```{r}
+plotCIF(mfit1, col = c("red", "blue"),
+        event=1, 
+        main = "Progression Stage 1 -> 2", 
+        xlab = "Time (Years)",
+        ylab = "Cumulative Incidence", 
+        ylim = c(0, 1))
+grid.echo()
+a <- grid.grab()
+
+p2 <- plotCIF(mfit1, col = c("red", "blue"),
+        event=2, 
+        main = "Progression Stage 2 -> 3", 
+        xlab = "Time (Years)",
+        ylab = "Cumulative Incidence", 
+        ylim = c(0, .5))
+grid.echo()
+b <- grid.grab()
+
+p3 <- plotCIF(mfit1, col = c("red", "blue"),
+        event=3, 
+        main = "Progression Stage 3 -> 4", 
+        xlab = "Time (Years)",
+        ylab = "Cumulative Incidence", 
+        ylim = c(0, .2))
+grid.echo()
+c <- grid.grab()
+
+p4 <- plotCIF(mfit1, col = c("red", "blue"),
+        event=4, 
+        main = "Progression Stage 4 -> 5", 
+        xlab = "Time (Years)",
+        ylab = "Cumulative Incidence", 
+        ylim = c(0, .1))
+grid.echo()
+d <- grid.grab()
+```
+
+And this (much more pretty) graph creates a competing risks plot: 
+```{r}
+ggcompetingrisks(mfit1)
+```
+
+Using a Cox regression, we can find the coefficient of the treatment dummy variable:
+```{r}
+cfit <- coxph(Surv(startTime, endTime, event) ~ treat, id=ID, data=dataL)
+cfit
+summary(cfit)
+cfit$coefficients
+```
+
+
+### 3.3 Difference-in-differences
+
+I also use an extension of the DiD methodology with multiple groups in variable treatment timing, and try to assess the impact of spillover effects. 
 
 ```{r warning=FALSE, message=FALSE, results=FALSE}
-load("~/Desktop/Code/Thesis/Data_for_Analysis/blong.Rdata")
+library(gplots)
+library(lmtest)
+library(sandwich)
+library(sjPlot)
+library(fixest)
 library(did)
+
+setwd("~/Desktop/Code/Thesis")
+load("~/Desktop/Code/Thesis/Data_for_Analysis/blong.Rdata")
+```
+
+```{r echo=FALSE}
+load("~/Desktop/Code/Thesis/Data_for_Analysis/btotalc.Rdata")
+load("~/Desktop/Code/Thesis/Data_for_Analysis/contextL.Rdata")
+ptrends_df <- left_join(btotalc, df[c(1:2, 20:21)], by=c("RAUMID")) %>% filter(gcode != 0)
+ptrends_logit <- femlm(is_eg ~ E_18U25 + E_25U55 + E_0U6 + WA + eu + aus_noneu + welf + unemp + gaa + gcode, 
+                       data=ptrends_df, 
+                       family="logit")
+ptrends_df <- ptrends_df %>% 
+  mutate(
+    phat = predict(ptrends_logit, ptrends_df), 
+    keep = phat > quantile(phat, probs = c(0.25), na.rm = TRUE)
+  ) %>% filter(keep == "TRUE")
+
+context_varsL$Year <- as.numeric(context_varsL$Year)
+
+dfL_full <- dfL_full %>% 
+  filter(gstatus != 0) %>% 
+  filter(RAUMID %in% ptrends_df$RAUMID) %>% 
+  left_join(., context_varsL, by=c("RAUMID", "Year")) %>% 
+  drop_na()
+```
+
+DiD test for treatment effects
+```{r results='hide', warning=FALSE, comment=FALSE}
 didtest <- did::att_gt(
   yname = "gstatus",
   tname = "Year",
   idname = "RAUMID",
+  weightsname = "pop",
+  xformla = ~ is_eg_byyear500,
   gname = "F_IN_KRAFT.x",
-  xformla=~1,
   data = dfL_full
 )
 
-outsimp <- did::aggte(didtest, type="simple")
+outsimp <- did::aggte(didtest, type="simple", na.rm = TRUE)
+outdyn <- did::aggte(didtest, type="dynamic", na.rm = TRUE)
 
-outdyn <- did::aggte(didtest, type="dynamic")
+justevens <- seq(-12, 4, 2)
+
+es_pts_spillover_control <- tibble(time = unlist(outdyn["egt"]), estimate = unlist(outdyn["att.egt"]), std.error = unlist(outdyn["se.egt"])) %>% 
+  mutate(
+    ub = estimate + 1.96 * std.error,
+    lb = estimate - 1.96 * std.error
+  ) %>% filter(time %in% justevens)
 ```
-```{r echo=FALSE}
-summary(didtest)
-summary(outsimp)
-summary(outdyn)
 
-ggdid(outdyn)
+plot of att estimation 
+```{r}
+ggplot(es_pts_spillover_control) +
+	geom_point(aes(x = time, y = estimate)) +
+	geom_errorbar(aes(x = time, ymin = lb, ymax = ub), alpha = 0.8) + 
+	geom_vline(xintercept = -0.5, color = "grey50") + 
+	geom_hline(yintercept = 0, color = "black") +
+	labs(y = NULL, x = "Years since CHC establishment")
+```
+
+DiD test for spillover effects
+```{r results='hide', warning=FALSE, comment=FALSE}
+didtest_500 <- did::att_gt(
+  yname = "gstatus",
+  tname = "Year",
+  idname = "RAUMID",
+  weightsname = "pop",
+  gname = "F_IN_KRAFT.y",
+  data = dfL_full %>% filter(is_eg_byyear500 != 2)
+)
+
+outdyn_500 <- did::aggte(didtest_500, type="dynamic", na.rm = TRUE)
+
+es_pts_spillover_effect <- tibble(time = unlist(outdyn_500["egt"]), estimate = unlist(outdyn_500["att.egt"]), std.error = unlist(outdyn_500["se.egt"])) %>% 
+  mutate(
+    ub = estimate + 1.96 * std.error,
+    lb = estimate - 1.96 * std.error
+) %>% filter(time %in% justevens)
+```
+
+```{r results='hide', warning=FALSE, comment=FALSE}
+didtest_z <- did::att_gt(
+  yname = "gstatus",
+  tname = "Year",
+  idname = "RAUMID",
+  weightsname = "pop",
+  gname = "F_IN_KRAFT.y",
+  data = dfL_full %>% filter(is_eg == 1)
+)
+
+outdyn_z <- did::aggte(didtest_z, type="dynamic", na.rm = TRUE)
+
+es_pts_spillover_z <- tibble(time = unlist(outdyn_z["egt"]), estimate = unlist(outdyn_z["att.egt"]), std.error = unlist(outdyn_z["se.egt"])) %>% 
+  mutate(
+    ub = estimate + 1.96 * std.error,
+    lb = estimate - 1.96 * std.error
+) %>% filter(time %in% justevens)
+```
+
+Creating combined plot 
+```{r}
+es_pts_combined <- bind_rows(
+  es_pts_spillover_control %>% mutate(group = "Treatment Effect", time = time - 0.1),
+  es_pts_spillover_effect %>% mutate(group = "Spillover Onto Control", time = time + 0.1),
+  es_pts_spillover_z %>% mutate(group = "Spillover Onto Treated", time = time + 0.2)
+)
+
+es_plot_combined <- ggplot(es_pts_combined) +
+    geom_vline(xintercept = -0.5, color = "grey50") + 
+    geom_hline(yintercept = 0, color = "black") +
+    geom_point(aes(x = time, y = estimate, color = group)) +
+    geom_errorbar(aes(x = time, ymin = lb, ymax = ub, color = group), alpha = 0.8) + 
+    theme(
+      legend.position = c(0.2, 0.15),
+      legend.spacing.x = unit(0, "pt"),
+      legend.spacing.y = unit(0, "pt")
+    ) +
+    scale_shape_manual(values = c(16, 18, 20)) + 
+    scale_color_manual(values = c("#5e81ac", "#bf616a", "#49de49")) +
+    labs(y = "Treatment effect on gentrification status", x = "Years since protection area establishment", color = NULL)
+
+es_plot_combined
 ```
 
 Looking at the results, it seems like there is at least some effect from treatment on gentrification status increase shown by the average treatment effects on the treated (`ATT`) of `0.2892`, with a confidence interval not covering 0. However, the substantial amount of error shown by the plot reflects that there's quite a lot of variation in effects, and the results are further complicated by the presence of positive global spatial autocorrelation, which means we might have violated the stable unit value treatment assumption, a cornerstone of the difference-in-difference method! 
