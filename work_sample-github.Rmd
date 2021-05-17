@@ -43,9 +43,6 @@ If you have any questions feel free to reach out via [email](cschwab1@uchicago.e
 
 This section details how I downloaded and cleaned data from several sources to use in my typology of gentrification. 
 
-<details>
-  <summary>Section 1: Click to expand! </summary>
-
 To create my gentrification typology, I used data from the resident register (Einwohnerregister), a survey called Monitoring Social Urban Development (MSS, Monitoring Sozialestadtentwicklung), and data on the average sale price on residential units. This data was largely aggregated to the [LOR Planning Region area](https://www.stadtentwicklung.berlin.de/planen/basisdaten_stadtentwicklung/lor/), but some years needed to be arealy interpolated. For this example, I'll show how I processed and combined data with a single year as an example (for combination I use two years, as I'm basing my typology off change over each two year period). 
 
 The data, while publicly available in reports since the year 2000, is not processed into csv files, and I instead acquired these by reaching out to representatives at the Urban Development office. While briefly cleaned in each year, the names of the variables vary substantially over the years and must thus be standardized. 
@@ -299,14 +296,11 @@ eg_lor_full <- egdummy(eg_lor_full, "2018-12-31") %>% rename(iseg19 = y)
 # the process is repeated for areas within 500 meters. 
 ```
 
-</details>
 
 ## 2: Gentrification data generation
 
 In section 2, I give a sample of how I classified areas in different stages of gentrification according to a set of demographic characteristics. 
 
-<details>
-  <summary>Section 2: Click to expand!</summary>
   
 ### 2.1 Data combining 
 Before data is generated, all three clean datasources have been saved as `.Rdata` files and are loaded and subsequently combined in each year. Then, years subtracted to find the change in each variable between each year. Once again, only a sample of this process is shown. 
@@ -660,7 +654,6 @@ urb_anim
 There's a ton of possibilities for cool visualizations, and I'm working on creating a shiny app that can focus in on specific districts to create a facet map/animated gif, as well as illustrating the relationship between treatment and gentrification (including spillover). 
 
 But, without further ado, the next section shows a few methods I used for analysis. 
-</details>
 
 ## 3: Analysis
 
