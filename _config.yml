@@ -1,4 +1,4 @@
-remote_theme: just-the-docs
+remote_theme: alshedivat/al-folio
 title: Clyde's Portfolio
 plugins:
   - jekyll-relative-links
