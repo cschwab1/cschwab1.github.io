@@ -1,4 +1,25 @@
 
+/* Add or modify the following styles */
+
+.about-me {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 2rem;
+}
+
+.about-me-left,
+.about-me-right {
+  flex: 1;
+  padding: 1rem;
+}
+
+.profile-photo {
+  width: 100%;
+  max-width: 150px;
+  border-radius: 50%;
+}
+
+/* Remaining styles unchanged */
 
 body {
     font-family: Arial, sans-serif;
@@ -21,11 +42,6 @@ body {
   header h2 {
     margin: 0;
     font-size: 1.2rem;
-  }
-  
-  .profile-photo {
-    width: 150px;
-    border-radius: 50%;
   }
   
   .about-me {
