@@ -1,11 +1,11 @@
-title: John Doe # your name (or website title) here
-logo: "/images/logo.png?raw=true" # your photo (or logo) here
+title: Clyde Schwab
+logo: "/images/headshot.png?raw=true" # your photo (or logo) here
 description: > # your text below (remove <br> elements if you don't need line breaks)
-  First description 
+  Geography | Public Health | Research | Data Science | Urban Studies
   <br><br>
-  Second description 
+  Currently a public health research analyst at <a href="https://www.rti.org/">RTI International</a>, I'm passionate about using data and maps to find new approaches to a range of public policy challenges.
   <br><br>
-  <a href="https://www.linkedin.com/in/example/">View My LinkedIn Profile</a> 
+  <a href="https://www.linkedin.com/in/clyde-schwab-2aa73a15a">View My LinkedIn Profile</a> 
   
 remote_theme: pages-themes/minimal@v0.2.0
 plugins:
